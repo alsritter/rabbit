@@ -6,14 +6,13 @@ import (
 	"time"
 
 	"alsritter.icu/rabbit/internal/config"
-	"go.etcd.io/etcd/client"
+	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
-func NewEtcd(urls string) (client.Client, error) {
-	cfg := client.Config{
-		Endpoints:               strings.Split(urls, ","),
-		Transport:               client.DefaultTransport,
-		HeaderTimeoutPerRequest: 10 * time.Second,
+func NewEtcd(urls string) (*clientv3.Client, error) {
+	cfg := clientv3.Config{
+		Endpoints:   strings.Split(urls, ","),
+		DialTimeout: 10 * time.Second,
 	}
 
 	username, password := config.GetEtcdUsername(), config.GetEtcdPassword()
@@ -22,7 +21,7 @@ func NewEtcd(urls string) (client.Client, error) {
 		cfg.Password = password
 	}
 
-	cli, err := client.New(cfg)
+	cli, err := clientv3.New(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("client.New err: %v", err)
 	}
