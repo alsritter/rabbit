@@ -1,5 +1,6 @@
 version: '2'
 
+# user/passwd => apollo/admin
 services:
   apollo-quick-start:
     image: nobodyiam/apollo-quick-start
