@@ -4,15 +4,30 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
+	"sync"
 	"time"
 
 	"alsritter.icu/rabbit/internal/util"
+	"github.com/jpillora/backoff"
 )
 
 const (
 	ROOT            = "/"
 	SERVICE         = "service"
 	DEFAULT_CLUSTER = "default"
+)
+
+var (
+	svcConfigMutex sync.Mutex
+	svcConfigMap   sync.Map
+	tryTime        = time.Now()
+
+	backOff = &backoff.Backoff{
+		Min:    time.Millisecond * 50,
+		Max:    time.Second * 60,
+		Factor: 2,
+	}
 )
 
 type Config struct {
@@ -35,8 +50,12 @@ func NewServiceConfig(etcdServerUrl, serverName string) *ServiceConfig {
 	}
 }
 
-func (c *ServiceConfig) GetConfig() (*Config, error) {
-	cli, err := util.NewEtcd(c.EtcdServerUrl)
+func (s *ServiceConfig) GetKeyName(serverName string) string {
+	return ROOT + SERVICE + "." + serverName + "." + DEFAULT_CLUSTER
+}
+
+func (s *ServiceConfig) GetConfig() (*Config, error) {
+	cli, err := util.NewEtcd(s.EtcdServerUrl)
 	if err != nil {
 		return nil, fmt.Errorf("generating etcd client failed to %v", err)
 	}
@@ -44,7 +63,7 @@ func (c *ServiceConfig) GetConfig() (*Config, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	key := c.GetKeyName(c.ServerName)
+	key := s.GetKeyName(s.ServerName)
 	serviceInfo, err := cli.Get(ctx, key)
 	if err != nil {
 		return nil, fmt.Errorf("etcd client Get key %s failed to %v", key, err)
@@ -65,16 +84,16 @@ func (c *ServiceConfig) GetConfig() (*Config, error) {
 	return &config, nil
 }
 
-func (c *ServiceConfig) WriteConfig(cf Config) error {
-	cli, err := util.NewEtcd(c.EtcdServerUrl)
+func (s *ServiceConfig) WriteConfig(cf Config) error {
+	cli, err := util.NewEtcd(s.EtcdServerUrl)
 	if err != nil {
 		return fmt.Errorf("generating etcd client failed to %v", err)
 	}
-	key := c.GetKeyName(c.ServerName)
+	key := s.GetKeyName(s.ServerName)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	cfJson, err := marshalToString(&cf)
+	cfJson, err := s.marshalToString(&cf)
 	if err != nil {
 		return fmt.Errorf("json.MarshalToString err: %v", err)
 	}
@@ -87,11 +106,67 @@ func (c *ServiceConfig) WriteConfig(cf Config) error {
 	return nil
 }
 
-func (c *ServiceConfig) GetKeyName(serverName string) string {
-	return ROOT + SERVICE + "." + serverName + "." + DEFAULT_CLUSTER
+func (s *ServiceConfig) InitCache() {
+	svcConfigMutex.Lock()
+	defer svcConfigMutex.Unlock()
+
+	configs, err := s.getConfigs()
+	if err != nil {
+		return
+	}
+
+	for key, cfg := range configs {
+		svcConfigMap.Store(key, cfg)
+	}
 }
 
-func marshalToString(v interface{}) (string, error) {
+func (s *ServiceConfig) GetCacheConfig() (cfg *Config, err error) {
+	key := s.GetKeyName(s.ServerName)
+	if c, ok := svcConfigMap.Load(key); ok {
+		return c.(*Config), nil
+	}
+
+	svcConfigMutex.Lock()
+	defer svcConfigMutex.Unlock()
+
+	// TODO: 学习 Map 的并发原理
+	return nil, fmt.Errorf("")
+}
+
+func (s *ServiceConfig) getConfigs() (map[string]*Config, error) {
+	cli, err := util.NewEtcd(s.EtcdServerUrl)
+	if err != nil {
+		return nil, fmt.Errorf("generating etcd client failed to %v", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	serviceInfos, err := cli.Get(ctx, "/", nil)
+	if err != nil {
+		return nil, fmt.Errorf("cli.Get err: %v", err)
+	}
+
+	configs := make(map[string]*Config)
+	for _, info := range serviceInfos.Kvs {
+		if len(info.Value) > 0 {
+			index := strings.Index(string(info.Key), ROOT+SERVICE)
+			if index == 0 {
+				config := &Config{}
+				err := json.Unmarshal(info.Value, config)
+				if err != nil {
+					return nil, fmt.Errorf("json.UnmarshalByte err: %v", err)
+				}
+
+				configs[string(info.Key)] = config
+			}
+		}
+	}
+
+	return configs, nil
+}
+
+func (s *ServiceConfig) marshalToString(v interface{}) (string, error) {
 	b, err := json.Marshal(v)
 	return string(b), err
 }
