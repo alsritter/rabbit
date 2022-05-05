@@ -129,8 +129,26 @@ func (s *ServiceConfig) GetCacheConfig() (cfg *Config, err error) {
 	svcConfigMutex.Lock()
 	defer svcConfigMutex.Unlock()
 
-	// TODO: 学习 Map 的并发原理
-	return nil, fmt.Errorf("")
+	// double check.
+	if c, ok := svcConfigMap.Load(key); ok {
+		return c.(*Config), nil
+	}
+
+	// in backoff time.
+	if time.Now().Before(tryTime) {
+		return nil, fmt.Errorf("get config err, backoff: %s", tryTime.Format("2006-01-02 15:04:05"))
+	}
+
+	cfg, err = s.GetConfig()
+	if err != nil {
+		tryTime = time.Now().Add(backOff.Duration())
+		return nil, err
+	}
+
+	svcConfigMap.Store(key, cfg)
+	backOff.Reset()
+
+	return cfg, nil
 }
 
 func (s *ServiceConfig) getConfigs() (map[string]*Config, error) {
