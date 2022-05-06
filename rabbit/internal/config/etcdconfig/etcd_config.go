@@ -110,7 +110,7 @@ func (s *ServiceConfig) InitCache() {
 	svcConfigMutex.Lock()
 	defer svcConfigMutex.Unlock()
 
-	configs, err := s.getConfigs()
+	configs, err := s.GetConfigs()
 	if err != nil {
 		return
 	}
@@ -151,7 +151,7 @@ func (s *ServiceConfig) GetCacheConfig() (cfg *Config, err error) {
 	return cfg, nil
 }
 
-func (s *ServiceConfig) getConfigs() (map[string]*Config, error) {
+func (s *ServiceConfig) GetConfigs() (map[string]*Config, error) {
 	cli, err := util.NewEtcd(s.EtcdServerUrl)
 	if err != nil {
 		return nil, fmt.Errorf("generating etcd client failed to %v", err)

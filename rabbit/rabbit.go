@@ -1,8 +1,9 @@
 package rabbit
 
+const RABBIT_VERSION = "1.0"
+
 const (
-	APP_OPTIONS_CONFIGER AppOptionType = iota + 1
-	APP_OPTIONS_REGISTRAR
+	APP_OPTIONS_REGISTRAR AppOptionType = iota + 1
 	APP_OPTIONS_DISCOVERY
 )
 
@@ -43,15 +44,6 @@ type ServiceInstance struct {
 // OptionDisable used to close app option
 type OptionDisable struct {
 	OptionIface
-}
-
-// ConfigerIface is Service Config Management Interface.
-type ConfigerIface interface {
-	OptionIface
-	Init() error
-	IsExistAppConfig(*Application) (bool, error)
-	LoadAppConfig(*Application) error
-	WatchUpdateConfig()
 }
 
 // RegistrarIface is Service Register Standard Interface

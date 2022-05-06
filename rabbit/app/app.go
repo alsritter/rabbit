@@ -23,26 +23,22 @@ func NewRunner(app *rabbit.Application) (*Runner, error) {
 		return nil, err
 	}
 
+	return &Runner{App: app}, nil
 }
 
 // ServiceRegister server register to etcd.
 func (r *Runner) ServiceRegister(application *rabbit.Application) {
+	register := r.App.AppOptions[rabbit.APP_OPTIONS_REGISTRAR]
+	// if register is empty, default write to etcd register center.
+	if register == nil {
 
+	}
 }
 
 func validAppOption(appOptions map[rabbit.AppOptionType]rabbit.OptionIface) error {
 	for optionType, option := range appOptions {
 		if option == nil {
 			continue
-		}
-
-		if optionType == rabbit.APP_OPTIONS_CONFIGER {
-			switch option.(type) {
-			case rabbit.OptionDisable:
-			case rabbit.ConfigerIface:
-			default:
-				return errors.New("the type of Application Configer must be rabbit.ConfigerIface")
-			}
 		}
 
 		if optionType == rabbit.APP_OPTIONS_REGISTRAR {
