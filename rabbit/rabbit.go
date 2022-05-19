@@ -47,6 +47,9 @@ type OptionDisable struct {
 }
 
 // RegistrarIface is Service Register Standard Interface
+// This interface is typically not implemented,
+// but is implemented if you need to access other service registries yourself,
+// such as a custom access Nacos
 type RegistrarIface interface {
 	OptionIface
 	Init() error
@@ -55,6 +58,9 @@ type RegistrarIface interface {
 }
 
 // DiscoveryIface is Service Discovery Standard Interface
+// This interface is typically not implemented,
+// but is implemented if you need to access other service registries yourself,
+// such as a custom access Nacos
 type DiscoveryIface interface {
 	OptionIface
 	Init() error

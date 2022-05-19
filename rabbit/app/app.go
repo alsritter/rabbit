@@ -10,10 +10,12 @@ import (
 	"alsritter.icu/rabbit/setup"
 )
 
+// A Runner represents a service, An Runner binds to a Application
 type Runner struct {
 	App *rabbit.Application
 }
 
+// NewRunner returns a new
 func NewRunner(app *rabbit.Application) (*Runner, error) {
 	if app.Name == "" {
 		return nil, errors.New("Application name can't not be empty")
@@ -33,6 +35,7 @@ func NewRunner(app *rabbit.Application) (*Runner, error) {
 // ServiceRegister server register to etcd.
 // To avoid collisions, the registered service ports are randomly generated.
 func (r *Runner) ServiceRegister() (*setup.ServiceInfo, error) {
+	// custom service registration method
 	registrar := r.App.AppOptions[rabbit.APP_OPTIONS_REGISTRAR]
 
 	// if register is empty, default write to etcd register center.
@@ -93,6 +96,29 @@ func (r *Runner) ServiceRegister() (*setup.ServiceInfo, error) {
 	default:
 		return nil, errors.New("the type of Application Registrar must be rabbit.RegistrarIface or rabbit.OptionDisable")
 	}
+}
+
+func (r *Runner) ServiceDeregister() error {
+	registrar := r.App.AppOptions[rabbit.APP_OPTIONS_REGISTRAR]
+	if registrar == nil {
+		return nil
+	}
+
+	// custom service deregister method
+	switch registrar.(type) {
+	case rabbit.RegistrarIface:
+		if err := registrar.(rabbit.RegistrarIface).Deregister(&rabbit.ApplicationInfo{
+			Name: r.App.Name,
+			Port: r.App.Port,
+		}); err != nil {
+			return err
+		}
+	case rabbit.OptionDisable:
+	default:
+		return errors.New("the type of Application Registrar must be rabbit.RegistrarIface")
+	}
+
+	return nil
 }
 
 // check the callback implementation a rabbit.OptionIface.
