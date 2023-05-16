@@ -17,8 +17,27 @@
 # Go workspace file
 go.work
 
-.DS_Store
-.vscode
-.idea
 
-docker/mysql/*
+# OS General
+Thumbs.db
+.DS_Store
+
+# project
+*.cert
+*.key
+*.log
+bin/
+
+# Develop tools
+.vscode/
+.idea/
+*.swp
+*.pb.go
+*.pb.validate.go
+
+__debug_bin
+openapi.yaml
+storage/**
+./storage
+./log
+.env

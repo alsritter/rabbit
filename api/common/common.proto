@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package common;
+option go_package = "alsritter.icu/rabbit-template/api/common;common";
+
+enum SourceType {
+    // 占位
+    SOURCE_TYPE_DEFAULT = 0;
+    // 集市登录
+    SOURCE_TYPE_MARKET = 1;
+    // 商家登录
+    SOURCE_TYPE_MERCHANT = 2;
+    // 站长端登录
+    SOURCE_TYPE_MANAGER = 3;
+    // 资产端登录
+    SOURCE_TYPE_ASSETS = 4;
+}
+
+message Request {
+}
+
+message Response {
+    
+}
+
+message Pager {
+    // 页码
+    int32 page = 1;
+    // 页数
+    int32 page_size = 2;
+    // 总行数
+    int32 total = 3;
+}

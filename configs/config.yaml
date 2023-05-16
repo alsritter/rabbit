@@ -1,0 +1,19 @@
+server:
+  http:
+    addr: 0.0.0.0:58001
+    timeout: 60s
+  grpc:
+    addr: 0.0.0.0:59001
+    timeout: 60s
+  cron:
+    timeout: 60s
+data:
+  database:
+    dsn: root:123456@(192.168.2.55:31819)/rabbit_db?charset=utf8mb4&parseTime=True&loc=Local&timeout=60s
+  redis:
+    addr: redis:6379
+    db: 0
+tracer:
+  enable: false
+  jaeger_url: http://192.168.2.55:14268/api/traces
+  service_name_key: rabbit-template-pro
