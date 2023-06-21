@@ -7,6 +7,7 @@ import (
 	"path"
 
 	"alsritter.icu/rabbit-template/internal/conf"
+	"alsritter.icu/rabbit-template/internal/pkg/cron"
 
 	"github.com/go-kratos/kratos/v2"
 	"github.com/go-kratos/kratos/v2/config"
@@ -14,7 +15,6 @@ import (
 	"github.com/go-kratos/kratos/v2/encoding/json"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/middleware/tracing"
-	"github.com/go-kratos/kratos/v2/transport/grpc"
 	"github.com/go-kratos/kratos/v2/transport/http"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -53,7 +53,7 @@ func init() {
 	log.Infof("config path: %v", configPath)
 }
 
-func newApp(logger log.Logger, gs *grpc.Server, hs *http.Server) *kratos.App {
+func newApp(logger log.Logger, hs *http.Server, cs *cron.Server) *kratos.App {
 	app := kratos.New(
 		kratos.ID(id),
 		kratos.Name(Name),
@@ -61,8 +61,8 @@ func newApp(logger log.Logger, gs *grpc.Server, hs *http.Server) *kratos.App {
 		kratos.Metadata(map[string]string{}),
 		kratos.Logger(logger),
 		kratos.Server(
-			gs,
 			hs,
+			cs,
 		),
 	)
 

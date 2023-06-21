@@ -4,7 +4,7 @@ import (
 	helloworld_v1 "alsritter.icu/rabbit-template/api/helloworld/v1"
 	"alsritter.icu/rabbit-template/internal/conf"
 	"alsritter.icu/rabbit-template/internal/pkg/proc"
-	"alsritter.icu/rabbit-template/internal/server/qy_middleware"
+	"alsritter.icu/rabbit-template/internal/pkg/qy_middleware"
 	"alsritter.icu/rabbit-template/internal/service/helloworld_service"
 
 	prom "github.com/go-kratos/kratos/contrib/metrics/prometheus/v2"

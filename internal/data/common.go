@@ -45,59 +45,10 @@ type ModelT interface {
 
 type CommonRepo[M ModelT] struct {
 	db *gorm.DB
-
-	createBeforeCallback func(...any) error
-	createAfterCallback  func(...any) error
-	deleteBeforeCallback func(...any) error
-	deleteAfterCallback  func(...any) error
-	updateBeforeCallback func(...any) error
-	updateAfterCallback  func(...any) error
 }
 
 // DB 回调函数的选项
 type DBOption[M ModelT] func(r CommonRepo[M])
-
-// WithCreateBeforeCallback 创建回调
-func WithCreateBeforeCallback[M ModelT](callback func(...any) error) DBOption[M] {
-	return func(r CommonRepo[M]) {
-		r.createBeforeCallback = callback
-	}
-}
-
-// WithCreateAfterCallback 创建回调
-func WithCreateAfterCallback[M ModelT](callback func(...any) error) DBOption[M] {
-	return func(r CommonRepo[M]) {
-		r.createAfterCallback = callback
-	}
-}
-
-// WithDeleteBeforeCallback 删除回调
-func WithDeleteBeforeCallback[M ModelT](callback func(...any) error) DBOption[M] {
-	return func(r CommonRepo[M]) {
-		r.deleteBeforeCallback = callback
-	}
-}
-
-// WithDeleteAfterCallback 删除回调
-func WithDeleteAfterCallback[M ModelT](callback func(...any) error) DBOption[M] {
-	return func(r CommonRepo[M]) {
-		r.deleteAfterCallback = callback
-	}
-}
-
-// WithUpdateBeforeCallback 更新回调
-func WithUpdateBeforeCallback[M ModelT](callback func(...any) error) DBOption[M] {
-	return func(r CommonRepo[M]) {
-		r.updateBeforeCallback = callback
-	}
-}
-
-// WithUpdateAfterCallback 更新回调
-func WithUpdateAfterCallback[M ModelT](callback func(...any) error) DBOption[M] {
-	return func(r CommonRepo[M]) {
-		r.updateAfterCallback = callback
-	}
-}
 
 // newCommonRepo 创建一个通用的 repo
 func newCommonRepo(model ModelT, db *gorm.DB, options ...DBOption[ModelT]) CommonRepo[ModelT] {
@@ -116,25 +67,10 @@ func (r *CommonRepo[M]) initDB() *gorm.DB {
 }
 
 func (r *CommonRepo[M]) Create(model *M) error {
-	if r.createBeforeCallback != nil {
-		err := r.createBeforeCallback(model)
-		if err != nil {
-			return err
-		}
-	}
-
 	db := r.initDB().Create(model)
 	if err := db.Error; err != nil {
 		return err
 	}
-
-	if r.createAfterCallback != nil {
-		err := r.createAfterCallback(model)
-		if err != nil {
-			return err
-		}
-	}
-
 	return nil
 }
 
@@ -146,7 +82,6 @@ func (r *CommonRepo[M]) CreateBatch(models *[]M) error {
 	return nil
 }
 
-// TODO: 加上回调函数
 func (r *CommonRepo[M]) FirstOrCreate(condition *M) (*M, error) {
 	var newModel M
 	db := r.initDB().FirstOrCreate(&newModel, condition)
@@ -157,13 +92,6 @@ func (r *CommonRepo[M]) FirstOrCreate(condition *M) (*M, error) {
 }
 
 func (r *CommonRepo[M]) Update(model *M, condition *M, fields ...string) error {
-	if r.updateBeforeCallback != nil {
-		err := r.updateBeforeCallback(model)
-		if err != nil {
-			return err
-		}
-	}
-
 	db := r.initDB()
 	if len(fields) > 0 {
 		db = db.Select(fields)
@@ -173,24 +101,10 @@ func (r *CommonRepo[M]) Update(model *M, condition *M, fields ...string) error {
 		return err
 	}
 
-	if r.updateAfterCallback != nil {
-		err := r.updateAfterCallback(model)
-		if err != nil {
-			return err
-		}
-	}
-
 	return nil
 }
 
 func (r *CommonRepo[M]) UpdateFiledById(model *M, id int32, fields ...string) error {
-	if r.updateBeforeCallback != nil {
-		err := r.updateBeforeCallback(model)
-		if err != nil {
-			return err
-		}
-	}
-
 	db := r.initDB()
 	if len(fields) > 0 {
 		db = db.Select(fields)
@@ -199,82 +113,33 @@ func (r *CommonRepo[M]) UpdateFiledById(model *M, id int32, fields ...string) er
 	if err := db.Error; err != nil {
 		return err
 	}
-
-	if r.updateAfterCallback != nil {
-		err := r.updateAfterCallback(model)
-		if err != nil {
-			return err
-		}
-	}
 	return nil
 }
 
 func (r *CommonRepo[M]) UpdateById(model *M, id int32) error {
-	if r.updateBeforeCallback != nil {
-		err := r.updateBeforeCallback(model)
-		if err != nil {
-			return err
-		}
-	}
-
 	db := r.initDB().Where("id = ?", id).Updates(model)
 	if err := db.Error; err != nil {
 		return err
-	}
-
-	if r.updateAfterCallback != nil {
-		err := r.updateAfterCallback(model)
-		if err != nil {
-			return err
-		}
 	}
 	return nil
 }
 
 func (r *CommonRepo[M]) UpdateAllById(model *M, id int32) error {
-	if r.updateBeforeCallback != nil {
-		err := r.updateBeforeCallback(model)
-		if err != nil {
-			return err
-		}
-	}
-
 	db := r.initDB().Select("*").Where("id = ?", id).Updates(model)
 	if err := db.Error; err != nil {
 		return err
-	}
-
-	if r.updateAfterCallback != nil {
-		err := r.updateAfterCallback(model)
-		if err != nil {
-			return err
-		}
 	}
 	return nil
 }
 
 // more see: https://gorm.io/zh_CN/docs/create.html#Upsert-%E5%8F%8A%E5%86%B2%E7%AA%81
 func (r *CommonRepo[M]) Upsert(models *[]M) error {
-	if r.updateBeforeCallback != nil {
-		err := r.updateBeforeCallback(models)
-		if err != nil {
-			return err
-		}
-	}
-
 	db := r.db.Clauses(clause.OnConflict{
 		UpdateAll: true,
 	}).Create(models)
 
 	if err := db.Error; err != nil {
 		return err
-	}
-
-	if r.updateAfterCallback != nil {
-		err := r.updateAfterCallback(models)
-		if err != nil {
-			return err
-		}
 	}
 	return nil
 }
@@ -284,32 +149,16 @@ func (r *CommonRepo[M]) Delete(condition *M, deleteUser ...string) error {
 	if condition == nil {
 		return ErrConditionNotBeNil
 	}
-
-	if r.deleteBeforeCallback != nil {
-		err := r.deleteBeforeCallback(condition)
-		if err != nil {
-			return err
-		}
-	}
-
 	var deleteUser0 string
 	if len(deleteUser) > 0 {
 		deleteUser0 = deleteUser[0]
 	}
-
 	db := r.db.Where("deleted_at = ?", 0).Where(condition).Updates(map[string]interface{}{
 		"deleted_at": time.Now(),
 		"deleted_by": deleteUser0,
 	})
 	if err := db.Error; err != nil {
 		return err
-	}
-
-	if r.deleteAfterCallback != nil {
-		err := r.deleteAfterCallback(condition)
-		if err != nil {
-			return err
-		}
 	}
 	return nil
 }
@@ -319,14 +168,6 @@ func (r *CommonRepo[M]) DeleteByIds(ids []int32, deleteUser ...string) error {
 	if len(ids) <= 0 {
 		return ErrIdsNotBeEmpty
 	}
-
-	if r.deleteBeforeCallback != nil {
-		err := r.deleteBeforeCallback(ids)
-		if err != nil {
-			return err
-		}
-	}
-
 	var deleteUser0 string
 	if len(deleteUser) > 0 {
 		deleteUser0 = deleteUser[0]
@@ -339,13 +180,6 @@ func (r *CommonRepo[M]) DeleteByIds(ids []int32, deleteUser ...string) error {
 	if err := db.Error; err != nil {
 		return err
 	}
-
-	if r.deleteAfterCallback != nil {
-		err := r.deleteAfterCallback(ids)
-		if err != nil {
-			return err
-		}
-	}
 	return nil
 }
 
@@ -354,24 +188,9 @@ func (r *CommonRepo[M]) DeleteById(id int32, deleteUser ...string) error {
 	if id <= 0 {
 		return ErrIdLessThanZero
 	}
-
-	if r.deleteBeforeCallback != nil {
-		err := r.deleteBeforeCallback(id)
-		if err != nil {
-			return err
-		}
-	}
-
 	err := r.DeleteByIds([]int32{id}, deleteUser...)
 	if err != nil {
 		return err
-	}
-
-	if r.deleteAfterCallback != nil {
-		err := r.deleteAfterCallback(id)
-		if err != nil {
-			return err
-		}
 	}
 	return nil
 }

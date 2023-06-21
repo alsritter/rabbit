@@ -6,7 +6,7 @@ import (
 
 // ProviderSet is server providers.
 var ProviderSet = wire.NewSet(
-	NewGRPCServer,
+	NewCronServer,
 	NewHTTPServer,
 	NewHttpClient,
 	NewTracer,

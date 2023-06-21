@@ -4,38 +4,38 @@ package helloworld.v1;
 
 import "google/api/annotations.proto";
 import "validate/validate.proto";
-import "common/common.proto";
+// import "common/common.proto";
 import "google/protobuf/empty.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
 
 option go_package = "alsritter.icu/rabbit-template/api/v1;v1";
 
 service HelloService {
-    rpc SayHello (google.protobuf.Empty) returns (SayHelloResponse) {
-        option (google.api.http) = {
-            get : "/api/hello/v1/say"
-        };
-    }
+  rpc SayHello(google.protobuf.Empty) returns (SayHelloResponse) {
+    option (google.api.http) = {
+      get : "/api/hello/v1/say"
+    };
+  }
 
-    rpc SayPostHello (SayPostHelloRequest) returns (SayPostHelloResponse) {
-        option (google.api.http) = {
-            post : "/api/hello/v1/say"
-            body : "*"
-        };
-    }
+  rpc SayPostHello(SayPostHelloRequest) returns (SayPostHelloResponse) {
+    option (google.api.http) = {
+      post : "/api/hello/v1/say"
+      body : "*"
+    };
+  }
 
-    rpc SayDeleteHello (SayDeleteHelloRequest) returns (google.protobuf.Empty) {
-        option (google.api.http) = {
-            delete : "/api/hello/v1/say"
-        };
-    }
+  rpc SayDeleteHello(SayDeleteHelloRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete : "/api/hello/v1/say"
+    };
+  }
 
-    rpc SayPutHello (SayPutHelloRequest) returns (google.protobuf.Empty) {
-        option (google.api.http) = {
-            put : "/api/hello/v1/say"
-            body : "*"
-        };
-    }
+  rpc SayPutHello(SayPutHelloRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      put : "/api/hello/v1/say"
+      body : "*"
+    };
+  }
 }
 
 enum Gender {
@@ -45,34 +45,44 @@ enum Gender {
 }
 
 message SayHelloResponse {
-    string message = 1 [ (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-      description : "说你好的响应"
-  } ];
+  string message = 1
+      [ (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description : "说你好的响应"
+      } ];
 }
 
 message SayPostHelloRequest {
-    string message = 1 [ (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+  string message = 1 [
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description : "说你好的请求"
-  }, (validate.rules).string.min_len = 1 ];
-    int32 age = 2 [ (validate.rules).int32.gt = 0 ];
-    Gender sex = 3;
+    },
+    (validate.rules).string.min_len = 1
+  ];
+  int32 age = 2 [ (validate.rules).int32.gt = 0 ];
+  Gender sex = 3;
 }
 
 message SayPostHelloResponse {
-    string message = 1 [ (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-      description : "说你好的响应"
-  } ];
+  string message = 1
+      [ (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description : "说你好的响应"
+      } ];
 }
 
 message SayDeleteHelloRequest {
-    string message = 1 [ (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+  string message = 1 [
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description : "说你好的请求"
-  }, (validate.rules).string.min_len = 1 ];
+    },
+    (validate.rules).string.min_len = 1
+  ];
 }
 
 message SayPutHelloRequest {
-    string message = 1 [ (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+  string message = 1 [
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description : "说你好的请求"
-  }, (validate.rules).string.min_len = 1 ];
+    },
+    (validate.rules).string.min_len = 1
+  ];
 }
-
