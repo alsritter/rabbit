@@ -1,16 +1,17 @@
 syntax = "proto3";
 
-package assets.v1;
+package helloworld.v1;
 
 import "google/api/annotations.proto";
 import "validate/validate.proto";
 import "common/common.proto";
+import "google/protobuf/empty.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
 
 option go_package = "alsritter.icu/rabbit-template/api/v1;v1";
 
 service HelloService {
-    rpc SayHello (common.Request) returns (SayHelloResponse) {
+    rpc SayHello (google.protobuf.Empty) returns (SayHelloResponse) {
         option (google.api.http) = {
             get : "/api/hello/v1/say"
         };
@@ -23,13 +24,13 @@ service HelloService {
         };
     }
 
-    rpc SayDeleteHello (SayDeleteHelloRequest) returns (common.Response) {
+    rpc SayDeleteHello (SayDeleteHelloRequest) returns (google.protobuf.Empty) {
         option (google.api.http) = {
             delete : "/api/hello/v1/say"
         };
     }
 
-    rpc SayPutHello (SayPutHelloRequest) returns (common.Response) {
+    rpc SayPutHello (SayPutHelloRequest) returns (google.protobuf.Empty) {
         option (google.api.http) = {
             put : "/api/hello/v1/say"
             body : "*"
