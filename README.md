@@ -35,3 +35,9 @@ o_(")(")
   ]
 }
 ```
+
+## 配置环境
+
+### win系统下安装工具支持gun命令
+
+[MinGW](http://www.mingw.org/wiki/getting_started)

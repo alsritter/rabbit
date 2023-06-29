@@ -16,6 +16,7 @@ type Option func(*options)
 
 type options struct {
 	handler recovery.HandlerFunc
+	log     *log.Helper
 }
 
 // WithHandler with recovery handler.
@@ -28,7 +29,9 @@ func WithHandler(h recovery.HandlerFunc) Option {
 // WithLogger with recovery logger.
 // Deprecated: use global logger instead.
 func WithLogger(logger log.Logger) Option {
-	return func(o *options) {}
+	return func(o *options) {
+		o.log = log.NewHelper(logger)
+	}
 }
 
 // Recovery is a server middleware that recovers from any panics.
@@ -37,10 +40,12 @@ func Recovery(opts ...Option) middleware.Middleware {
 		handler: func(ctx context.Context, req, err interface{}) error {
 			return recovery.ErrUnknownRequest
 		},
+		log: log.Context(context.Background()),
 	}
 	for _, o := range opts {
 		o(&op)
 	}
+
 	return func(handler middleware.Handler) middleware.Handler {
 		return func(ctx context.Context, req interface{}) (reply interface{}, err error) {
 			defer func() {
@@ -51,9 +56,7 @@ func Recovery(opts ...Option) middleware.Middleware {
 
 					stackStr := strings.ReplaceAll(string(buf), "\t", "")
 					stackArr := strings.Split(stackStr, "\n")
-					// log.Context(ctx).Errorf("%v: %+v\n %v\n", rerr, req, stackArr)
-					log.Context(ctx).Log(log.LevelError, "reason", rerr, "stack", zap.Strings("stack", stackArr))
-
+					op.log.WithContext(ctx).Log(log.LevelError, "reason", rerr, "stack", zap.Strings("stack", stackArr))
 					err = op.handler(ctx, req, rerr)
 				}
 			}()
